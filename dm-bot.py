@@ -1,4 +1,5 @@
 import configparser
+import gsheet_reader
 import os
 import time
 import re
@@ -12,7 +13,7 @@ slack_client = SlackClient(config['SLACK']['oauth_key'])
 dmbot_id = None
 
 RTM_READ_DELAY = 1 # 1 second delay between reading from RTM
-EXAMPLE_COMMAND = "current xp"
+EXAMPLE_COMMAND = "whois list"
 MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 
 def parse_bot_commands(slack_events):
@@ -41,20 +42,30 @@ def handle_command(command, channel):
     """
         Executes bot command if the command is known
     """
+    print('Found command {} in {}'.format(command, channel))
     # Default response is help text for the user
     default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
 
     # Finds and executes the given command, filling in response
     response = None
     # This is where you start to implement more commands!
-    if command.startswith(EXAMPLE_COMMAND):
-        response = "The party's current XP is 2,926, putting you at level 4. You're 3,574xp away from level 5"
+    if command.lower().startswith('current xp'):
+        xp_resp = gsheet_reader.current_xp()
+        response = "The party's current XP is {}, putting you at level {}.".format(xp_resp[0], xp_resp[1])
 
-    if command.startswith('tldr'):
-        response = "APR 17 TLDR: Pressed onward up River Shosenstar. Sid spotted a beheaded corpse in red robes, Udril shared his knowledge of the Red Wizards of Thay. Reached Camp Vengeance and found it destroyed, continued overland. Were accosted by the Flaming Fist and forced to pay a bribe. Climbed the cliff and had a sweeping view of the Aldani Basin. Reached Mbala and met the witch doctor Nanny Pu'pu, who was definitely more than she let on. She told of Rite of Stolen Life, the yuan-ti, Dendar the Night Serpent, and Ras Nsi. Asked the party to wipe out the pterafolk nest in exchange for more information."
+    if command.lower().startswith('tldr'):
+        session_date = None
+        if len(command) > 4:
+            session_date = command[4:].strip()
+        tldr = gsheet_reader.read_tldr(session_date)
+        response = 'TLDR for ' + tldr[0] + ': \n' + tldr[1] 
 
-    if 'next session' in command:
-        response = 'The next session is Tuesday April 17 at 6pm.'
+    if command.lower().startswith('whois'):
+        search_name = 'list'
+        if len(command.strip()) > 5:
+            search_name = command[6:].strip()
+        response = gsheet_reader.whois(search_name)
+
 
     # Sends the response back to the channel
     slack_client.api_call(
