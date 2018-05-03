@@ -53,7 +53,7 @@ def handle_command(command, channel):
 
     # Finds and executes the given command, filling in response
     response = None
-    # This is where you start to implement more commands!
+    
     if command.lower().startswith('current xp') or command.lower().startswith('xp'):
         xp_resp = gsheet_reader.current_xp()
         response = "The party's current XP is {}, putting you at level {}.".format(xp_resp[0], xp_resp[1])
