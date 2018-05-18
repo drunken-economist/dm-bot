@@ -26,7 +26,8 @@ def current_xp():
 		for row in reader:
 			xp = row[10]
 			level = row[11]
-		return [xp, level]
+			needed = row[12]
+		return [xp, level, needed]
 
 def whois(npc_name='list'):
 	npcs = {}
