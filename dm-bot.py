@@ -44,14 +44,19 @@ def handle_command(command, channel):
     """
     print('Found command {} in {}'.format(command, channel))
     # Default response is help text for the user
-    default_response = "Not sure what you mean. Try *{}*.".format(EXAMPLE_COMMAND)
+    default_response = '''Not sure what you mean. Try one of the following:\n
+        `tldr Apr 21` (date optional)\n
+        `current xp`\n
+        `who is Ras Nsi`\n
+        `who is list`
+        '''
 
     # Finds and executes the given command, filling in response
     response = None
-    # This is where you start to implement more commands!
-    if command.lower().startswith('current xp'):
+    
+    if command.lower().startswith('current xp') or command.lower().startswith('xp'):
         xp_resp = gsheet_reader.current_xp()
-        response = "The party's current XP is {}, putting you at level {}.".format(xp_resp[0], xp_resp[1])
+        response = "The party's current XP is {}, putting you at level {}. You need {}xp more to level up".format(xp_resp[0], xp_resp[1], xp_resp[2])
 
     if command.lower().startswith('tldr'):
         session_date = None
@@ -60,7 +65,7 @@ def handle_command(command, channel):
         tldr = gsheet_reader.read_tldr(session_date)
         response = 'TLDR for ' + tldr[0] + ': \n' + tldr[1] 
 
-    if command.lower().startswith('whois'):
+    if command.lower().startswith('who'):
         search_name = 'list'
         if len(command.strip()) > 5:
             search_name = command[6:].strip()
